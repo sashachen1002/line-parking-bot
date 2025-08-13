@@ -1,7 +1,7 @@
 from flask import Flask, request, abort
 from linebot import LineBotApi, WebhookHandler
 from linebot.exceptions import InvalidSignatureError
-from linebot.models import MessageEvent, TextMessage, TextSendMessage
+from linebot.models import MessageEvent, TextMessage, TextSendMessage, LocationMessage
 from dotenv import load_dotenv
 import os
 
@@ -33,8 +33,22 @@ def handle_message(event):
         event.reply_token,
         TextSendMessage(text=reply_text)
     )
+
+@handler.add(MessageEvent, message=LocationMessage)
+def handle_location(event):
+    latitude = event.message.latitude
+    longitude = event.message.longitude
+    title = event.message.title or "你傳送的位置"
+
+    reply_text = f"你的位置：{title}\n緯度：{latitude}\n經度：{longitude}"
+    
+    line_bot_api.reply_message(
+        event.reply_token,
+        TextSendMessage(text=reply_text)
+    )
     
 if __name__ == "__main__":
     import os
     port = int(os.environ.get("PORT", 10000))
     app.run(host="0.0.0.0", port=port)
+
